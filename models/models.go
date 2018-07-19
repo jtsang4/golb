@@ -32,6 +32,7 @@ func registerDB() {
 
 func createTables(db *sql.DB) error {
 	tx, err := db.Begin()
+
 	if err != nil {
 		return err
 	}

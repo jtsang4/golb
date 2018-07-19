@@ -25,8 +25,7 @@ func InsertOneCategory(db *sql.DB) {
 		UpdatedTime: time.Now(),
 	}
 	AddOneCategory(db, category)
-	fmt.Println(GetCategories(db))
-	// GetCategories(db)
+	fmt.Println(GetAllCategories(db))
 }
 
 func TestStart(db *sql.DB) {

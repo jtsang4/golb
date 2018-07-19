@@ -43,7 +43,7 @@ func AddOneCategory(db *sql.DB, c BasicCategory) {
 	}
 }
 
-func GetCategories(db *sql.DB) (categories []Category) {
+func GetAllCategories(db *sql.DB) (categories []Category) {
 	rows, err := db.Query("SELECT id, title, author_id, author_name, created_time, updated_time FROM category")
 	if err != nil {
 		log.Fatalln(err)
