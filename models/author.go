@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -15,7 +16,7 @@ type BasicAuthor struct {
 }
 
 type Author struct {
-	Id          uint32
+	Id          int64
 	CreatedTime time.Time
 	BasicAuthor
 }
@@ -55,7 +56,7 @@ func GetAllAuthors(db *sql.DB) (authors []Author) {
 		log.Fatalln(err)
 	}
 	for rows.Next() {
-		var id uint32
+		var id int64
 		var username string
 		var email string
 		var password string
@@ -83,7 +84,7 @@ func GetOneAuthor(db *sql.DB, condition ...string) Author {
 		query += " " + condition[0]
 	}
 	row := db.QueryRow(query)
-	var id uint32
+	var id int64
 	var username string
 	var email string
 	var password string
@@ -103,7 +104,7 @@ func GetOneAuthor(db *sql.DB, condition ...string) Author {
 	}
 }
 
-func GetAuthorById(db *sql.DB, id uint32) Author {
+func GetAuthorById(db *sql.DB, id int64) Author {
 	condition := "WHERE id = " + string(id)
 	return GetOneAuthor(db, condition)
 }
@@ -113,8 +114,15 @@ func GetAuthorByEmail(db *sql.DB, email string) Author {
 	return GetOneAuthor(db, condition)
 }
 
-func UpdateOneAuthor(db *sql.DB, id uint32, a BasicAuthor) Author {
-	// TODO: check if username, email exist
+func UpdateOneAuthor(db *sql.DB, id int64, a BasicAuthor) (Author, error) {
+	authors := GetAllAuthors(db)
+	for _, author := range authors {
+		if author.Username == a.Username {
+			return Author{}, errors.New(fmt.Sprintf("Update author info failed, the username %s is duplicated.", a.Username))
+		} else if author.Email == a.Email {
+			return Author{}, errors.New(fmt.Sprintf("Update author info failed, the email %s is duplicated.", a.Email))
+		}
+	}
 	query := fmt.Sprintf(
 		"UPDATE author SET username = %s, email = %s， password = %s, name = %s WHERE id = %d",
 		a.Username, a.Email, a.Password, a.Name, id,
@@ -123,5 +131,15 @@ func UpdateOneAuthor(db *sql.DB, id uint32, a BasicAuthor) Author {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	return GetAuthorById(db, id)
+	return GetAuthorById(db, id), nil
+}
+
+func DeleteOneAuthor(db *sql.DB, id int64) (Author, error) {
+	author := GetAuthorById(db, id)
+	query := fmt.Sprintf("DELETE FROM author WHERE id = %d", id)
+	_, err := db.Exec(query)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return author, nil
 }

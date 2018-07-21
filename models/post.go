@@ -8,7 +8,7 @@ import (
 
 type BasicPost struct {
 	Title       string
-	AuthorId    uint32
+	AuthorId    int64
 	AuthorName  string
 	Content     string
 	CreatedTime time.Time
@@ -16,7 +16,7 @@ type BasicPost struct {
 }
 
 type Post struct {
-	Id uint32
+	Id int64
 	BasicPost
 }
 

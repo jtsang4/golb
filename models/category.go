@@ -8,14 +8,14 @@ import (
 
 type BasicCategory struct {
 	Title       string
-	AuthorId    uint32
+	AuthorId    int64
 	AuthorName  string
 	CreatedTime time.Time
 	UpdatedTime time.Time
 }
 
 type Category struct {
-	Id uint32
+	Id int64
 	BasicCategory
 }
 
@@ -49,9 +49,9 @@ func GetAllCategories(db *sql.DB) (categories []Category) {
 		log.Fatalln(err)
 	}
 	for rows.Next() {
-		var id uint32
+		var id int64
 		var title string
-		var authorId uint32
+		var authorId int64
 		var authorName string
 		var createdTime time.Time
 		var updatedTime time.Time
