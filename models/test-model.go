@@ -8,11 +8,10 @@ import (
 
 func InsertOneCategory(db *sql.DB) {
 	author := BasicAuthor{
-		Username:    "wtzeng",
-		Email:       "wtzeng@ss.com",
-		Password:    "gogoooo11",
-		Name:        "wentao",
-		CreatedTime: time.Now(),
+		Username: "wtzeng",
+		Email:    "wtzeng@ss.com",
+		Password: "gogoooo11",
+		Name:     "wentao",
 	}
 
 	AddOneAuthor(db, author)
