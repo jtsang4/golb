@@ -15,7 +15,7 @@ func InsertOneCategory(db *sql.DB) {
 	}
 
 	AddOneAuthor(db, author)
-	at, err := GetOneAuthor(db)
+	at, err := GetOneAuthorWithCondition(db)
 	if err != nil {
 		log.Fatal(err)
 	}

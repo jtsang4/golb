@@ -68,7 +68,7 @@ func AddOneCategory(db *sql.DB, c BasicCategory) (category Category, err error) 
 func GetCategoriesWithCondition(db *sql.DB, condition ...string) (categories []Category, err error) {
 	query := "SELECT id, title, author_id, author_name, created_time, updated_time FROM category"
 	if len(condition) > 0 {
-		query += fmt.Sprintf(" %s", condition)
+		query += fmt.Sprintf(" %s", condition[0])
 	}
 	rows, err := db.Query(query)
 	if err != nil {
@@ -81,7 +81,10 @@ func GetCategoriesWithCondition(db *sql.DB, condition ...string) (categories []C
 		var authorName string
 		var createdTime time.Time
 		var updatedTime time.Time
-		rows.Scan(&id, &title, &authorId, &authorName, &createdTime, &updatedTime)
+		err = rows.Scan(&id, &title, &authorId, &authorName, &createdTime, &updatedTime)
+		if err != nil {
+			return categories, err
+		}
 		c := BasicCategory{
 			Title:      title,
 			AuthorId:   authorId,
@@ -101,7 +104,12 @@ func GetAllCategories(db *sql.DB) (categories []Category, err error) {
 	return GetCategoriesWithCondition(db)
 }
 
-func GetOneCategory(db *sql.DB, condition ...string) (category Category, err error) {
+func GetCategoriesByAuthorId(db *sql.DB, authorId int64) (categories []Category, err error) {
+	condition := fmt.Sprintf(" WHERE author_id = %d", authorId)
+	return GetCategoriesWithCondition(db, condition)
+}
+
+func GetOneCategoryWithCondition(db *sql.DB, condition ...string) (category Category, err error) {
 	query := "SELECT id, title, author_id, author_name, created_time, updated_time FROM category"
 	if len(condition) > 0 {
 		query += fmt.Sprintf(" %s", condition[0])
@@ -133,17 +141,12 @@ func GetOneCategory(db *sql.DB, condition ...string) (category Category, err err
 
 func GetOneCategoryById(db *sql.DB, id int64) (category Category, err error) {
 	condition := fmt.Sprintf("WHERE id = %d", id)
-	return GetOneCategory(db, condition)
+	return GetOneCategoryWithCondition(db, condition)
 }
 
 func GetOneCategoryByTitle(db *sql.DB, title string) (category Category, err error) {
 	condition := fmt.Sprintf("WHERE title = %s", title)
-	return GetOneCategory(db, condition)
-}
-
-func GetCategoriesByAuthorId(db *sql.DB, authorId int64) (categories []Category, err error) {
-	condition := fmt.Sprintf(" WHERE author_id = %d", authorId)
-	return GetCategoriesWithCondition(db, condition)
+	return GetOneCategoryWithCondition(db, condition)
 }
 
 func UpdateOneCategory(db *sql.DB, c Category) (category Category, err error) {
@@ -156,19 +159,21 @@ func UpdateOneCategory(db *sql.DB, c Category) (category Category, err error) {
 			return category, errors.New(fmt.Sprintf("Update category info failed, the title %s is existing", c.Title))
 		}
 	}
+	currentTime := time.Now()
 	query := fmt.Sprintf(
-		"UPDATE category SET title = %s WHERE id = %d",
-		c.Title, c.Id,
+		"UPDATE category SET title = %s, updated_time = %v WHERE id = %d",
+		c.Title, currentTime, c.Id,
 	)
 	_, err = db.Exec(query)
 	if err != nil {
 		return category, err
 	}
+	c.UpdatedTime = currentTime
 	return c, nil
 }
 
 func DeleteOneCategory(db *sql.DB, id int64) (category Category, err error) {
-	category, err = GetOneCategoryById(db, id)
+	c, err := GetOneCategoryById(db, id)
 	if err != nil {
 		return category, err
 	}
@@ -177,5 +182,5 @@ func DeleteOneCategory(db *sql.DB, id int64) (category Category, err error) {
 	if err != nil {
 		return category, err
 	}
-	return category, nil
+	return c, nil
 }

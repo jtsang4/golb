@@ -77,7 +77,10 @@ func GetAllAuthors(db *sql.DB) (authors []Author, err error) {
 		var password string
 		var name string
 		var createdTime time.Time
-		rows.Scan(&id, &username, &email, &password, &name, &createdTime)
+		err = rows.Scan(&id, &username, &email, &password, &name, &createdTime)
+		if err != nil {
+			return authors, err
+		}
 		a := BasicAuthor{
 			Username: username,
 			Email:    email,
@@ -93,7 +96,7 @@ func GetAllAuthors(db *sql.DB) (authors []Author, err error) {
 	return authors, nil
 }
 
-func GetOneAuthor(db *sql.DB, condition ...string) (author Author, err error) {
+func GetOneAuthorWithCondition(db *sql.DB, condition ...string) (author Author, err error) {
 	query := "SELECT id, username, email, password, name, created_time FROM author"
 	if len(condition) > 0 {
 		query += fmt.Sprintf(" %s", condition[0])
@@ -125,12 +128,12 @@ func GetOneAuthor(db *sql.DB, condition ...string) (author Author, err error) {
 
 func GetAuthorById(db *sql.DB, id int64) (Author, error) {
 	condition := fmt.Sprintf("WHERE id = %d", id)
-	return GetOneAuthor(db, condition)
+	return GetOneAuthorWithCondition(db, condition)
 }
 
 func GetAuthorByEmail(db *sql.DB, email string) (Author, error) {
 	condition := fmt.Sprintf("WHERE email = %s", email)
-	return GetOneAuthor(db, condition)
+	return GetOneAuthorWithCondition(db, condition)
 }
 
 func UpdateOneAuthor(db *sql.DB, a Author) (author Author, err error) {
@@ -157,7 +160,7 @@ func UpdateOneAuthor(db *sql.DB, a Author) (author Author, err error) {
 }
 
 func DeleteOneAuthor(db *sql.DB, id int64) (author Author, err error) {
-	author, err = GetAuthorById(db, id)
+	a, err := GetAuthorById(db, id)
 	if err != nil {
 		return author, err
 	}
@@ -166,5 +169,5 @@ func DeleteOneAuthor(db *sql.DB, id int64) (author Author, err error) {
 	if err != nil {
 		return author, err
 	}
-	return author, nil
+	return a, nil
 }
