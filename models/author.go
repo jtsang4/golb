@@ -38,10 +38,10 @@ func AddOneAuthor(db *sql.DB, a BasicAuthor) (author Author, err error) {
 	if err != nil {
 		return author, err
 	}
-	for _, author := range allAuthors {
-		if author.Username == a.Username {
+	for _, auth := range allAuthors {
+		if auth.Username == a.Username {
 			return author, errors.New(fmt.Sprintf("Add author failed, the username %s is existing.", a.Username))
-		} else if author.Email == a.Email {
+		} else if auth.Email == a.Email {
 			return author, errors.New(fmt.Sprintf("Add author failed, the email %s is existing.", a.Email))
 		}
 	}
@@ -124,7 +124,7 @@ func GetOneAuthor(db *sql.DB, condition ...string) (author Author, err error) {
 }
 
 func GetAuthorById(db *sql.DB, id int64) (Author, error) {
-	condition := fmt.Sprintf("WHERE id = %s", id)
+	condition := fmt.Sprintf("WHERE id = %d", id)
 	return GetOneAuthor(db, condition)
 }
 
@@ -133,27 +133,27 @@ func GetAuthorByEmail(db *sql.DB, email string) (Author, error) {
 	return GetOneAuthor(db, condition)
 }
 
-func UpdateOneAuthor(db *sql.DB, id int64, a BasicAuthor) (author Author, err error) {
+func UpdateOneAuthor(db *sql.DB, a Author) (author Author, err error) {
 	authors, err := GetAllAuthors(db)
 	if err != nil {
 		return author, err
 	}
 	for _, author := range authors {
 		if author.Username == a.Username {
-			return author, errors.New(fmt.Sprintf("Update author info failed, the username %s is duplicated.", a.Username))
+			return author, errors.New(fmt.Sprintf("Update author info failed, the username %s is existing.", a.Username))
 		} else if author.Email == a.Email {
-			return author, errors.New(fmt.Sprintf("Update author info failed, the email %s is duplicated.", a.Email))
+			return author, errors.New(fmt.Sprintf("Update author info failed, the email %s is existing.", a.Email))
 		}
 	}
 	query := fmt.Sprintf(
 		"UPDATE author SET username = %s, email = %s， password = %s, name = %s WHERE id = %d",
-		a.Username, a.Email, a.Password, a.Name, id,
+		a.Username, a.Email, a.Password, a.Name, a.Id,
 	)
 	_, err = db.Exec(query)
 	if err != nil {
 		return author, err
 	}
-	return GetAuthorById(db, id)
+	return a, nil
 }
 
 func DeleteOneAuthor(db *sql.DB, id int64) (author Author, err error) {

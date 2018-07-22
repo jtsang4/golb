@@ -32,10 +32,10 @@ func registerDB() {
 
 func createTables(db *sql.DB) error {
 	tx, err := db.Begin()
-
 	if err != nil {
 		return err
 	}
+
 	_, err = CreateAuthorTable(db)
 	if err != nil {
 		return err

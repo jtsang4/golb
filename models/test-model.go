@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"time"
+	"log"
 )
 
 func InsertOneCategory(db *sql.DB) {
@@ -15,13 +15,14 @@ func InsertOneCategory(db *sql.DB) {
 	}
 
 	AddOneAuthor(db, author)
-	at := GetOneAuthor(db)
+	at, err := GetOneAuthor(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 	category := BasicCategory{
-		Title:       "the first category",
-		AuthorId:    at.Id,
-		AuthorName:  at.Name,
-		CreatedTime: time.Now(),
-		UpdatedTime: time.Now(),
+		Title:      "the first category",
+		AuthorId:   at.Id,
+		AuthorName: at.Name,
 	}
 	AddOneCategory(db, category)
 	fmt.Println(GetAllCategories(db))
