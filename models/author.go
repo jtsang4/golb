@@ -20,7 +20,7 @@ type Author struct {
 	BasicAuthor
 }
 
-func CreateAuthorTable(db *sql.DB) (sql.Result, error) {
+func CreateAuthorTable() (sql.Result, error) {
 	return db.Exec(`
     CREATE TABLE IF NOT EXISTS author (
       id SERIAL PRIMARY KEY ,
@@ -33,8 +33,8 @@ func CreateAuthorTable(db *sql.DB) (sql.Result, error) {
   `)
 }
 
-func AddOneAuthor(db *sql.DB, a BasicAuthor) (author Author, err error) {
-	allAuthors, err := GetAllAuthors(db)
+func AddOneAuthor(a BasicAuthor) (author Author, err error) {
+	allAuthors, err := GetAllAuthors()
 	if err != nil {
 		return author, err
 	}
@@ -65,18 +65,20 @@ func AddOneAuthor(db *sql.DB, a BasicAuthor) (author Author, err error) {
 	return author, nil
 }
 
-func GetAllAuthors(db *sql.DB) (authors []Author, err error) {
+func GetAllAuthors() (authors []Author, err error) {
 	rows, err := db.Query("SELECT id, username, email, password, name, created_time FROM author")
 	if err != nil {
 		return authors, err
 	}
 	for rows.Next() {
-		var id int64
-		var username string
-		var email string
-		var password string
-		var name string
-		var createdTime time.Time
+		var (
+			id          int64
+			username    string
+			email       string
+			password    string
+			name        string
+			createdTime time.Time
+		)
 		err = rows.Scan(&id, &username, &email, &password, &name, &createdTime)
 		if err != nil {
 			return authors, err
@@ -96,18 +98,20 @@ func GetAllAuthors(db *sql.DB) (authors []Author, err error) {
 	return authors, nil
 }
 
-func GetOneAuthorWithCondition(db *sql.DB, condition ...string) (author Author, err error) {
+func GetOneAuthorWithCondition(condition ...string) (author Author, err error) {
 	query := "SELECT id, username, email, password, name, created_time FROM author"
 	if len(condition) > 0 {
 		query += fmt.Sprintf(" %s", condition[0])
 	}
 	row := db.QueryRow(query)
-	var id int64
-	var username string
-	var email string
-	var password string
-	var name string
-	var createdTime time.Time
+	var (
+		id          int64
+		username    string
+		email       string
+		password    string
+		name        string
+		createdTime time.Time
+	)
 	err = row.Scan(&id, &username, &email, &password, &name, &createdTime)
 	if err != nil {
 		return author, err
@@ -126,18 +130,18 @@ func GetOneAuthorWithCondition(db *sql.DB, condition ...string) (author Author, 
 	return author, nil
 }
 
-func GetAuthorById(db *sql.DB, id int64) (Author, error) {
+func GetAuthorById(id int64) (Author, error) {
 	condition := fmt.Sprintf("WHERE id = %d", id)
-	return GetOneAuthorWithCondition(db, condition)
+	return GetOneAuthorWithCondition(condition)
 }
 
-func GetAuthorByEmail(db *sql.DB, email string) (Author, error) {
+func GetAuthorByEmail(email string) (Author, error) {
 	condition := fmt.Sprintf("WHERE email = %s", email)
-	return GetOneAuthorWithCondition(db, condition)
+	return GetOneAuthorWithCondition(condition)
 }
 
-func UpdateOneAuthor(db *sql.DB, a Author) (author Author, err error) {
-	authors, err := GetAllAuthors(db)
+func UpdateOneAuthor(a Author) (author Author, err error) {
+	authors, err := GetAllAuthors()
 	if err != nil {
 		return author, err
 	}
@@ -159,8 +163,8 @@ func UpdateOneAuthor(db *sql.DB, a Author) (author Author, err error) {
 	return a, nil
 }
 
-func DeleteOneAuthor(db *sql.DB, id int64) (author Author, err error) {
-	a, err := GetAuthorById(db, id)
+func DeleteOneAuthor(id int64) (author Author, err error) {
+	a, err := GetAuthorById(id)
 	if err != nil {
 		return author, err
 	}

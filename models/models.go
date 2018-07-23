@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-var DB *sql.DB
+var db *sql.DB
 
 func init() {
 	registerDB()
@@ -14,37 +14,37 @@ func init() {
 
 func registerDB() {
 	var err error
-	DB, err = sql.Open("postgres", "user=postgres dbname=golb password= sslmode=disable")
+	db, err = sql.Open("postgres", "user=postgres dbname=golb password= sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
-	defer DB.Close()
-	err = DB.Ping()
+	defer db.Close()
+	err = db.Ping()
 	if err != nil {
 		panic(err)
 	}
-	err = createTables(DB)
+	err = createTables()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	TestStart(DB)
+	TestStart()
 }
 
-func createTables(db *sql.DB) error {
+func createTables() error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
 
-	_, err = CreateAuthorTable(db)
+	_, err = CreateAuthorTable()
 	if err != nil {
 		return err
 	}
-	_, err = CreateCategoryTable(db)
+	_, err = CreateCategoryTable()
 	if err != nil {
 		return err
 	}
-	_, err = CreatePostTable(db)
+	_, err = CreatePostTable()
 	if err != nil {
 		return err
 	}

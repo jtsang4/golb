@@ -1,12 +1,11 @@
 package models
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 )
 
-func InsertOneCategory(db *sql.DB) {
+func InsertOneCategory() {
 	author := BasicAuthor{
 		Username: "wtzeng",
 		Email:    "wtzeng@ss.com",
@@ -14,8 +13,8 @@ func InsertOneCategory(db *sql.DB) {
 		Name:     "wentao",
 	}
 
-	AddOneAuthor(db, author)
-	at, err := GetOneAuthorWithCondition(db)
+	AddOneAuthor(author)
+	at, err := GetOneAuthorWithCondition()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,10 +23,10 @@ func InsertOneCategory(db *sql.DB) {
 		AuthorId:   at.Id,
 		AuthorName: at.Name,
 	}
-	AddOneCategory(db, category)
-	fmt.Println(GetAllCategories(db))
+	AddOneCategory(category)
+	fmt.Println(GetAllCategories())
 }
 
-func TestStart(db *sql.DB) {
-	InsertOneCategory(db)
+func TestStart() {
+	InsertOneCategory()
 }
