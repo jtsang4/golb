@@ -45,14 +45,11 @@ func AddOneCategory(c BasicCategory) (category Category, err error) {
 		}
 	}
 	currentTime := time.Now()
-	result, err := db.Exec(
+	var id int64
+	err = db.QueryRow(
 		"INSERT INTO category( title, author_id, author_name, created_time, updated_time ) VALUES ($1, $2, $3, $4, $5) RETURNING id",
 		c.Title, c.AuthorId, c.AuthorName, currentTime, currentTime,
-	)
-	if err != nil {
-		return category, err
-	}
-	id, err := result.LastInsertId()
+	).Scan(&id)
 	if err != nil {
 		return category, err
 	}
