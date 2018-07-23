@@ -7,10 +7,12 @@ import (
 )
 
 type BasicPost struct {
-	Title      string
-	AuthorId   int64
-	AuthorName string
-	Content    string
+	Title        string
+	Content      string
+	AuthorId     int64
+	AuthorName   string
+	CategoryId   int64
+	CategoryName string
 }
 
 type Post struct {
@@ -29,6 +31,7 @@ func CreatePostTable() (sql.Result, error) {
       author_id integer NOT NULL REFERENCES author (id) ,
       author_name text NOT NULL ,
       category_id integer NOT NULL REFERENCES category (id) ,
+      category_name category NOT NULL,
       created_time timestamp NOT NULL ,
       updated_time timestamp NOT NULL
     )
@@ -39,8 +42,8 @@ func AddOnePost(p BasicPost) (post Post, err error) {
 	currentTime := time.Now()
 	var id int64
 	err = db.QueryRow(
-		"INSERT INTO post( title, author_id, author_name, content, created_time, updated_time ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
-		p.Title, p.AuthorId, p.AuthorName, p.Content, currentTime, currentTime,
+		"INSERT INTO post( title, content, author_id, author_name, category_id, category_name, created_time, updated_time ) VALUES ('$1', '$2', $3, '$4', $5, '$6', $7, $8) RETURNING id",
+		p.Title, p.Content, p.CategoryId, p.CategoryName, p.AuthorId, p.AuthorName, currentTime, currentTime,
 	).Scan(&id)
 	if err != nil {
 		return post, err
@@ -55,7 +58,7 @@ func AddOnePost(p BasicPost) (post Post, err error) {
 }
 
 func GetPostsWithCondition(condition ...string) (posts []Post, err error) {
-	query := "SELECT id, title, author_id, author_name, content, created_time, updated_time FROM post"
+	query := "SELECT id, title, content, author_id, author_name, category_id, category_name, created_time, updated_time FROM post"
 	if len(condition) > 0 {
 		query += fmt.Sprintf(" %s", condition[0])
 	}
@@ -65,23 +68,27 @@ func GetPostsWithCondition(condition ...string) (posts []Post, err error) {
 	}
 	for rows.Next() {
 		var (
-			id          int64
-			title       string
-			authorId    int64
-			authorName  string
-			content     string
-			createdTime time.Time
-			updatedTime time.Time
+			id           int64
+			title        string
+			content      string
+			authorId     int64
+			authorName   string
+			categoryId   int64
+			categoryName string
+			createdTime  time.Time
+			updatedTime  time.Time
 		)
-		err = rows.Scan(&id, &title, &authorId, &authorName, &content, &createdTime, &updatedTime)
+		err = rows.Scan(&id, &title, &content, &authorId, &authorName, &categoryId, &categoryName, &createdTime, &updatedTime)
 		if err != nil {
 			return posts, err
 		}
 		p := BasicPost{
-			Title:      title,
-			AuthorId:   authorId,
-			AuthorName: authorName,
-			Content:    content,
+			Title:        title,
+			Content:      content,
+			AuthorId:     authorId,
+			AuthorName:   authorName,
+			CategoryId:   categoryId,
+			CategoryName: categoryName,
 		}
 		posts = append(posts, Post{
 			Id:          id,
@@ -102,30 +109,39 @@ func GetPostsByAuthorId(authorId int64) (posts []Post, err error) {
 	return GetPostsWithCondition(condition)
 }
 
+func GetPostsByCategoryId(categoryId int64) (posts []Post, err error) {
+	condition := fmt.Sprintf("WHERE category_id = %d", categoryId)
+	return GetPostsWithCondition(condition)
+}
+
 func GetOnePostWithCondition(condition ...string) (post Post, err error) {
-	query := "SELECT id, title, author_id, author_name, content, created_time, updated_time FROM post"
+	query := "SELECT id, title, content, author_id, author_name, category_id, category_name, created_time, updated_time FROM post"
 	if len(condition) > 0 {
 		query += fmt.Sprintf(" %s", condition[0])
 	}
 	row := db.QueryRow(query)
 	var (
-		id          int64
-		title       string
-		authorId    int64
-		authorName  string
-		content     string
-		createdTime time.Time
-		updatedTime time.Time
+		id           int64
+		title        string
+		content      string
+		authorId     int64
+		authorName   string
+		categoryId   int64
+		categoryName string
+		createdTime  time.Time
+		updatedTime  time.Time
 	)
-	err = row.Scan(&id, &title, &authorId, &authorName, &content, &createdTime, &updatedTime)
+	err = row.Scan(&id, &title, &content, &authorId, &authorName, &categoryId, &categoryName, &createdTime, &updatedTime)
 	if err != nil {
 		return post, err
 	}
 	p := BasicPost{
-		Title:      title,
-		AuthorId:   authorId,
-		AuthorName: authorName,
-		Content:    content,
+		Title:        title,
+		Content:      content,
+		AuthorId:     authorId,
+		AuthorName:   authorName,
+		CategoryId:   categoryId,
+		CategoryName: categoryName,
 	}
 	post = Post{
 		Id:          id,
@@ -141,17 +157,23 @@ func GetOnePostById(id int64) (Post, error) {
 	return GetOnePostWithCondition(condition)
 }
 
-func UpdateOnePost(p Post) (post Post, err error) {
+func UpdateOnePost(id int64, p BasicPost) (post Post, err error) {
+	var createdTime time.Time
 	currentTime := time.Now()
-	_, err = db.Exec(
-		"UPDATE post SET title = $1, content = $2, updated_time = $3 WHERE id = $4",
-		p.Title, p.Content, currentTime, p.Id,
-	)
+	err = db.QueryRow(
+		"UPDATE post SET title = '$1', content = '$2', category_id = $3, category_name = '$4', updated_time = $5 WHERE id = $6 RETURNING created_time",
+		p.Title, p.Content, p.CategoryId, p.CategoryName, currentTime, id,
+	).Scan(&createdTime)
 	if err != nil {
 		return post, err
 	}
-	p.UpdatedTime = currentTime
-	return p, nil
+	post = Post{
+		Id:          id,
+		CreatedTime: createdTime,
+		UpdatedTime: currentTime,
+		BasicPost:   p,
+	}
+	return post, nil
 }
 
 func DeleteOnePost(id int64) (post Post, err error) {
@@ -159,8 +181,7 @@ func DeleteOnePost(id int64) (post Post, err error) {
 	if err != nil {
 		return post, err
 	}
-	query := fmt.Sprintf("DELETE FROM post WHERE id = %d", id)
-	_, err = db.Exec(query)
+	_, err = db.Exec("DELETE FROM post WHERE id = $1", id)
 	if err != nil {
 		return post, err
 	}

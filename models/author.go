@@ -48,7 +48,7 @@ func AddOneAuthor(a BasicAuthor) (author Author, err error) {
 	currentTime := time.Now()
 	var id int64
 	err = db.QueryRow(
-		"INSERT INTO author (username, email, password, name, created_time) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		"INSERT INTO author (username, email, password, name, created_time) VALUES ('$1', '$2', '$3', '$4', $5) RETURNING id",
 		a.Username, a.Email, a.Password, a.Name, currentTime,
 	).Scan(&id)
 	if err != nil {
@@ -133,11 +133,11 @@ func GetAuthorById(id int64) (Author, error) {
 }
 
 func GetAuthorByEmail(email string) (Author, error) {
-	condition := fmt.Sprintf("WHERE email = %s", email)
+	condition := fmt.Sprintf("WHERE email = '%s'", email)
 	return GetOneAuthorWithCondition(condition)
 }
 
-func UpdateOneAuthor(a Author) (author Author, err error) {
+func UpdateOneAuthor(id int64, a BasicAuthor) (author Author, err error) {
 	authors, err := GetAllAuthors()
 	if err != nil {
 		return author, err
@@ -149,14 +149,20 @@ func UpdateOneAuthor(a Author) (author Author, err error) {
 			return author, errors.New(fmt.Sprintf("Update author info failed, the email %s is existing.", a.Email))
 		}
 	}
-	_, err = db.Exec(
-		"UPDATE author SET username = $1, email = $2, password = $3, name = $4 WHERE id = $5",
-		a.Username, a.Email, a.Password, a.Name, a.Id,
-	)
+	var createdTime time.Time
+	err = db.QueryRow(
+		"UPDATE author SET username = '$1', email = '$2', password = '$3', name = '$4' WHERE id = $5 RETURNING created_time",
+		a.Username, a.Email, a.Password, a.Name, id,
+	).Scan(&createdTime)
 	if err != nil {
 		return author, err
 	}
-	return a, nil
+	author = Author{
+		Id:          id,
+		CreatedTime: createdTime,
+		BasicAuthor: a,
+	}
+	return author, nil
 }
 
 func DeleteOneAuthor(id int64) (author Author, err error) {
@@ -164,8 +170,7 @@ func DeleteOneAuthor(id int64) (author Author, err error) {
 	if err != nil {
 		return author, err
 	}
-	query := fmt.Sprintf("DELETE FROM author WHERE id = %d", id)
-	_, err = db.Exec(query)
+	_, err = db.Exec("DELETE FROM author WHERE id = $1", id)
 	if err != nil {
 		return author, err
 	}

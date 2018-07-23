@@ -47,7 +47,7 @@ func AddOneCategory(c BasicCategory) (category Category, err error) {
 	currentTime := time.Now()
 	var id int64
 	err = db.QueryRow(
-		"INSERT INTO category( title, author_id, author_name, created_time, updated_time ) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		"INSERT INTO category( title, author_id, author_name, created_time, updated_time ) VALUES ('$1', $2, '$3', $4, $5) RETURNING id",
 		c.Title, c.AuthorId, c.AuthorName, currentTime, currentTime,
 	).Scan(&id)
 	if err != nil {
@@ -146,30 +146,44 @@ func GetOneCategoryById(id int64) (category Category, err error) {
 }
 
 func GetOneCategoryByTitle(title string) (category Category, err error) {
-	condition := fmt.Sprintf("WHERE title = %s", title)
+	condition := fmt.Sprintf("WHERE title = '%s'", title)
 	return GetOneCategoryWithCondition(condition)
 }
 
-func UpdateOneCategory(c Category) (category Category, err error) {
-	categories, err := GetCategoriesByAuthorId(c.AuthorId)
+func UpdateOneCategory(id int64, title string) (category Category, err error) {
+	categories, err := GetCategoriesByAuthorId(id)
 	if err != nil {
 		return category, err
 	}
 	for _, cat := range categories {
-		if cat.AuthorId == c.AuthorId && c.Title == cat.Title {
-			return category, errors.New(fmt.Sprintf("Update category info failed, the title %s is existing", c.Title))
+		if cat.AuthorId == id && cat.Title == title {
+			return category, errors.New(fmt.Sprintf("Update category info failed, the title %s is existing", title))
 		}
 	}
-	currentTime := time.Now()
-	_, err = db.Exec(
-		"UPDATE category SET title = $1, updated_time = $2 WHERE id = $3",
-		c.Title, currentTime, c.Id,
+	var (
+		authorId    int64
+		authorName  string
+		createdTime time.Time
 	)
+	currentTime := time.Now()
+	err = db.QueryRow(
+		"UPDATE category SET title = '$1', updated_time = $2 WHERE id = $3 RETURNING author_id, author_name, created_time",
+		title, currentTime, id,
+	).Scan(&authorId, &authorName, &createdTime)
 	if err != nil {
 		return category, err
 	}
-	c.UpdatedTime = currentTime
-	return c, nil
+	category = Category{
+		Id:          id,
+		CreatedTime: createdTime,
+		UpdatedTime: currentTime,
+		BasicCategory: BasicCategory{
+			Title:      title,
+			AuthorId:   authorId,
+			AuthorName: authorName,
+		},
+	}
+	return category, nil
 }
 
 func DeleteOneCategory(id int64) (category Category, err error) {
@@ -177,8 +191,7 @@ func DeleteOneCategory(id int64) (category Category, err error) {
 	if err != nil {
 		return category, err
 	}
-	query := fmt.Sprintf("DELETE FROM category WHERE id = %d", id)
-	_, err = db.Exec(query)
+	_, err = db.Exec("DELETE FROM category WHERE id = $1", id)
 	if err != nil {
 		return category, err
 	}
