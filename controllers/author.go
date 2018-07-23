@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/wtzeng1/golb/models"
+	"net/http"
 )
 
 func RegisterAuthorController() {
@@ -22,7 +22,8 @@ func RegisterAuthorController() {
 		}
 		a, err := models.AddOneAuthor(author)
 		if err != nil {
-			panic(fmt.Sprintf("add author %s failed."))
+			panic(err)
 		}
+		context.JSON(http.StatusOK, a)
 	})
 }

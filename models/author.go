@@ -46,14 +46,11 @@ func AddOneAuthor(a BasicAuthor) (author Author, err error) {
 		}
 	}
 	currentTime := time.Now()
-	result, err := db.Exec(
-		"INSERT INTO author (username, email, password, name, created_time) VALUES ($1, $2, $3, $4, $5)",
+	var id int64
+	err = db.QueryRow(
+		"INSERT INTO author (username, email, password, name, created_time) VALUES ($1, $2, $3, $4, $5) RETURNING id",
 		a.Username, a.Email, a.Password, a.Name, currentTime,
-	)
-	if err != nil {
-		return author, err
-	}
-	id, err := result.LastInsertId()
+	).Scan(&id)
 	if err != nil {
 		return author, err
 	}

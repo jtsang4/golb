@@ -18,7 +18,6 @@ func registerDB() {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 	err = db.Ping()
 	if err != nil {
 		panic(err)
@@ -27,7 +26,10 @@ func registerDB() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	TestStart()
+}
+
+func CloseDB() {
+	db.Close()
 }
 
 func createTables() error {

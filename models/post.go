@@ -38,7 +38,7 @@ func CreatePostTable() (sql.Result, error) {
 func AddOnePost(p BasicPost) (post Post, err error) {
 	currentTime := time.Now()
 	result, err := db.Exec(
-		"INSERT INTO post( title, author_id, author_name, content, created_time, updated_time ) VALUES ($1, $2, $3, $4, $5, $6)",
+		"INSERT INTO post( title, author_id, author_name, content, created_time, updated_time ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
 		p.Title, p.AuthorId, p.AuthorName, p.Content, currentTime, currentTime,
 	)
 	if err != nil {
