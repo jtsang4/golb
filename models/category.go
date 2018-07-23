@@ -161,11 +161,10 @@ func UpdateOneCategory(c Category) (category Category, err error) {
 		}
 	}
 	currentTime := time.Now()
-	query := fmt.Sprintf(
-		"UPDATE category SET title = %s, updated_time = %v WHERE id = %d",
+	_, err = db.Exec(
+		"UPDATE category SET title = $1, updated_time = $2 WHERE id = $3",
 		c.Title, currentTime, c.Id,
 	)
-	_, err = db.Exec(query)
 	if err != nil {
 		return category, err
 	}

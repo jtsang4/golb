@@ -143,11 +143,10 @@ func GetOnePostById(id int64) (Post, error) {
 
 func UpdateOnePost(p Post) (post Post, err error) {
 	currentTime := time.Now()
-	query := fmt.Sprintf(
-		"UPDATE post SET title = %s, content = %s, updated_time = %v WHERE id = %d",
+	_, err = db.Exec(
+		"UPDATE post SET title = $1, content = $2, updated_time = $3 WHERE id = $4",
 		p.Title, p.Content, currentTime, p.Id,
 	)
-	_, err = db.Exec(query)
 	if err != nil {
 		return post, err
 	}

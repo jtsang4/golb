@@ -149,11 +149,10 @@ func UpdateOneAuthor(a Author) (author Author, err error) {
 			return author, errors.New(fmt.Sprintf("Update author info failed, the email %s is existing.", a.Email))
 		}
 	}
-	query := fmt.Sprintf(
-		"UPDATE author SET username = %s, email = %s， password = %s, name = %s WHERE id = %d",
+	_, err = db.Exec(
+		"UPDATE author SET username = $1, email = $2, password = $3, name = $4 WHERE id = $5",
 		a.Username, a.Email, a.Password, a.Name, a.Id,
 	)
-	_, err = db.Exec(query)
 	if err != nil {
 		return author, err
 	}
