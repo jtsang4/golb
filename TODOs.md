@@ -4,3 +4,4 @@
 * session design
 * log design
 * front end
+* handle unexpected data and invalid data

@@ -48,7 +48,7 @@ func AddOneAuthor(a BasicAuthor) (author Author, err error) {
 	currentTime := time.Now()
 	var id int64
 	err = db.QueryRow(
-		"INSERT INTO author (username, email, password, name, created_time) VALUES ('$1', '$2', '$3', '$4', $5) RETURNING id",
+		"INSERT INTO author (username, email, password, name, created_time) VALUES ($1, $2, $3, $4, $5) RETURNING id",
 		a.Username, a.Email, a.Password, a.Name, currentTime,
 	).Scan(&id)
 	if err != nil {
@@ -151,7 +151,7 @@ func UpdateOneAuthor(id int64, a BasicAuthor) (author Author, err error) {
 	}
 	var createdTime time.Time
 	err = db.QueryRow(
-		"UPDATE author SET username = '$1', email = '$2', password = '$3', name = '$4' WHERE id = $5 RETURNING created_time",
+		"UPDATE author SET username = $1, email = $2, password = $3, name = $4 WHERE id = $5 RETURNING created_time",
 		a.Username, a.Email, a.Password, a.Name, id,
 	).Scan(&createdTime)
 	if err != nil {

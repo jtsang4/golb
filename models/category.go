@@ -47,7 +47,7 @@ func AddOneCategory(c BasicCategory) (category Category, err error) {
 	currentTime := time.Now()
 	var id int64
 	err = db.QueryRow(
-		"INSERT INTO category( title, author_id, author_name, created_time, updated_time ) VALUES ('$1', $2, '$3', $4, $5) RETURNING id",
+		"INSERT INTO category( title, author_id, author_name, created_time, updated_time ) VALUES ($1, $2, $3, $4, $5) RETURNING id",
 		c.Title, c.AuthorId, c.AuthorName, currentTime, currentTime,
 	).Scan(&id)
 	if err != nil {
@@ -167,7 +167,7 @@ func UpdateOneCategory(id int64, title string) (category Category, err error) {
 	)
 	currentTime := time.Now()
 	err = db.QueryRow(
-		"UPDATE category SET title = '$1', updated_time = $2 WHERE id = $3 RETURNING author_id, author_name, created_time",
+		"UPDATE category SET title = $1, updated_time = $2 WHERE id = $3 RETURNING author_id, author_name, created_time",
 		title, currentTime, id,
 	).Scan(&authorId, &authorName, &createdTime)
 	if err != nil {

@@ -42,7 +42,7 @@ func AddOnePost(p BasicPost) (post Post, err error) {
 	currentTime := time.Now()
 	var id int64
 	err = db.QueryRow(
-		"INSERT INTO post( title, content, author_id, author_name, category_id, category_name, created_time, updated_time ) VALUES ('$1', '$2', $3, '$4', $5, '$6', $7, $8) RETURNING id",
+		"INSERT INTO post( title, content, author_id, author_name, category_id, category_name, created_time, updated_time ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
 		p.Title, p.Content, p.CategoryId, p.CategoryName, p.AuthorId, p.AuthorName, currentTime, currentTime,
 	).Scan(&id)
 	if err != nil {
@@ -161,7 +161,7 @@ func UpdateOnePost(id int64, p BasicPost) (post Post, err error) {
 	var createdTime time.Time
 	currentTime := time.Now()
 	err = db.QueryRow(
-		"UPDATE post SET title = '$1', content = '$2', category_id = $3, category_name = '$4', updated_time = $5 WHERE id = $6 RETURNING created_time",
+		"UPDATE post SET title = $1, content = $2, category_id = $3, category_name = $4, updated_time = $5 WHERE id = $6 RETURNING created_time",
 		p.Title, p.Content, p.CategoryId, p.CategoryName, currentTime, id,
 	).Scan(&createdTime)
 	if err != nil {
