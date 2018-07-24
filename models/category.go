@@ -99,12 +99,22 @@ func GetCategoriesWithCondition(condition ...string) (categories []Category, err
 	return categories, nil
 }
 
-func GetAllCategories() (categories []Category, err error) {
+func GetAllCategories() ([]Category, error) {
 	return GetCategoriesWithCondition()
 }
 
-func GetCategoriesByAuthorId(authorId int64) (categories []Category, err error) {
+func GetCategoriesByAuthorId(authorId int64) ([]Category, error) {
 	condition := fmt.Sprintf(" WHERE author_id = %d", authorId)
+	return GetCategoriesWithCondition(condition)
+}
+
+func GetCategoriesByTitle(title string) ([]Category, error) {
+	condition := fmt.Sprintf("WHERE title = '%s'", title)
+	return GetCategoriesWithCondition(condition)
+}
+
+func GetCategoriesByAuthorIdAndTitle(authorId int64, title string) ([]Category, error) {
+	condition := fmt.Sprintf("WHERE author_id = %d, title = '%s'", authorId, title)
 	return GetCategoriesWithCondition(condition)
 }
 
@@ -140,13 +150,8 @@ func GetOneCategoryWithCondition(condition ...string) (category Category, err er
 	return category, nil
 }
 
-func GetOneCategoryById(id int64) (category Category, err error) {
+func GetOneCategoryById(id int64) (Category, error) {
 	condition := fmt.Sprintf("WHERE id = %d", id)
-	return GetOneCategoryWithCondition(condition)
-}
-
-func GetOneCategoryByTitle(title string) (category Category, err error) {
-	condition := fmt.Sprintf("WHERE title = '%s'", title)
 	return GetOneCategoryWithCondition(condition)
 }
 

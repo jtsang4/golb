@@ -104,12 +104,12 @@ func GetAllPosts() ([]Post, error) {
 	return GetPostsWithCondition()
 }
 
-func GetPostsByAuthorId(authorId int64) (posts []Post, err error) {
+func GetPostsByAuthorId(authorId int64) ([]Post, error) {
 	condition := fmt.Sprintf("WHERE author_id = %d", authorId)
 	return GetPostsWithCondition(condition)
 }
 
-func GetPostsByCategoryId(categoryId int64) (posts []Post, err error) {
+func GetPostsByCategoryId(categoryId int64) ([]Post, error) {
 	condition := fmt.Sprintf("WHERE category_id = %d", categoryId)
 	return GetPostsWithCondition(condition)
 }

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/wtzeng1/golb/models"
 	"net/http"
@@ -79,21 +80,25 @@ func RegisterAuthorController() {
 					panic(err)
 				}
 				context.JSON(http.StatusOK, a)
+			} else {
+				context.AbortWithError(http.StatusBadRequest, errors.New("there is no author ID param"))
 			}
 		})
 
 		authorRouter.DELETE("/:id", func(context *gin.Context) {
 			id := context.Param("id")
 			if id != "" {
-				id, err := strconv.ParseInt(id, 10, 64)
+				aId, err := strconv.ParseInt(id, 10, 64)
 				if err != nil {
 					panic(err)
 				}
-				author, err := models.DeleteOneAuthor(id)
+				author, err := models.DeleteOneAuthor(aId)
 				if err != nil {
 					panic(err)
 				}
 				context.JSON(http.StatusOK, author)
+			} else {
+				context.AbortWithError(http.StatusBadRequest, errors.New("there is no author ID param"))
 			}
 		})
 	}

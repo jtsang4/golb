@@ -13,4 +13,5 @@ func CreateApp() *gin.Engine {
 
 func RegisterRouters() {
 	RegisterAuthorController()
+	RegisterCategoryController()
 }
