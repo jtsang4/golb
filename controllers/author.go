@@ -61,6 +61,10 @@ func RegisterAuthorController() {
 		authorRouter.PUT("/:id", func(context *gin.Context) {
 			id := context.Param("id")
 			if id != "" {
+				id, err := strconv.ParseInt(id, 10, 64)
+				if err != nil {
+					panic(err)
+				}
 				username := context.PostForm("username")
 				email := context.PostForm("email")
 				password := context.PostForm("password")
@@ -70,10 +74,6 @@ func RegisterAuthorController() {
 					Email:    email,
 					Password: password,
 					Name:     name,
-				}
-				id, err := strconv.ParseInt(id, 10, 64)
-				if err != nil {
-					panic(err)
 				}
 				a, err := models.UpdateOneAuthor(id, author)
 				if err != nil {

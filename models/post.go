@@ -114,6 +114,11 @@ func GetPostsByCategoryId(categoryId int64) ([]Post, error) {
 	return GetPostsWithCondition(condition)
 }
 
+func GetPostsByAuthorIdAndCategoryId(authorId int64, categoryId int64) ([]Post, error) {
+	condition := fmt.Sprintf("WHERE author_id = %d, category_id = %d", authorId, categoryId)
+	return GetPostsWithCondition(condition)
+}
+
 func GetOnePostWithCondition(condition ...string) (post Post, err error) {
 	query := "SELECT id, title, content, author_id, author_name, category_id, category_name, created_time, updated_time FROM post"
 	if len(condition) > 0 {
